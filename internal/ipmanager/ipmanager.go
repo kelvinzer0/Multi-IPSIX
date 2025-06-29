@@ -29,7 +29,7 @@ func AddIPv6Address(iface, ipAddr string) error {
 }
 
 // DeprecateAllIPv6Addresses sets the preferred lifetime of all IPv6 addresses on a given interface to 0.
-func DeprecateAllIPv6Addresses(iface string) error {
+func DeprecateAllIPv6Addresses(iface, priorityIP string) error {
 	// Get all IPv6 addresses on the interface
 	cmd := exec.Command("ip", "-6", "addr", "show", "dev", iface)
 	output, err := cmd.CombinedOutput()
@@ -50,6 +50,11 @@ func DeprecateAllIPv6Addresses(iface string) error {
 				}
 
 				// Deprecate each IPv6 address
+                // Skip deprecating the priority IP
+                if ip.String() == priorityIP {
+                    fmt.Printf("Skipping deprecation for priority IP %s on interface %s\n", ipWithCIDR, iface)
+                    continue
+                }
 				deprecateCmd := exec.Command("ip", "addr", "change", ipWithCIDR, "dev", iface, "preferred_lft", "0")
 				deprecateOutput, deprecateErr := deprecateCmd.CombinedOutput()
 				if deprecateErr != nil {

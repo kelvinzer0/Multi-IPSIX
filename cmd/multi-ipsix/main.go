@@ -33,14 +33,8 @@ func main() {
 		}
 
 		// 2. Deprecate all IPv6 addresses on the interface, except the priority IP.
-        if err := ipmanager.DeprecateAllIPv6Addresses(ifaceConfig.Name); err != nil {
+        if err := ipmanager.DeprecateAllIPv6Addresses(ifaceConfig.Name, ifaceConfig.PriorityIP); err != nil {
             log.Printf("Warning on deprecating all IPv6 addresses: %v\n", err)
-        }
-        // After deprecating all, ensure the priority IP is added back if it was deprecated.
-        if ifaceConfig.PriorityIP != "" {
-            if err := ipmanager.AddIPv6Address(ifaceConfig.Name, ifaceConfig.PriorityIP); err != nil {
-                log.Printf("Warning on re-adding priority IP %s: %v\n", ifaceConfig.PriorityIP, err)
-            }
         }
 		fmt.Printf("--- Finished processing interface: %s ---\n\n", ifaceConfig.Name)
 	}
