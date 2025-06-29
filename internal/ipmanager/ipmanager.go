@@ -50,7 +50,7 @@ func DeprecateAllIPv6Addresses(iface string) error {
 				}
 
 				// Deprecate each IPv6 address
-				deprecateCmd := exec.Command("ip", "addr", "change", ip.String(), "dev", iface, "preferred_lft", "0")
+				deprecateCmd := exec.Command("ip", "addr", "change", ipWithCIDR, "dev", iface, "preferred_lft", "0")
 				deprecateOutput, deprecateErr := deprecateCmd.CombinedOutput()
 				if deprecateErr != nil {
 					fmt.Printf("Warning: Error deprecating IP %s on %s: %v, output: %s\n", ip.String(), iface, deprecateErr, string(deprecateOutput))
