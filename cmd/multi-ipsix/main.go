@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"Multi-IPSIX/internal/config"
 	"Multi-IPSIX/internal/ipmanager"
+	"Multi-IPSIX/internal/ipv6monitor"
 )
 
 func main() {
@@ -19,6 +21,8 @@ func main() {
 	}
 
 	fmt.Println("Successfully loaded configuration. Starting IP management...")
+
+	var wg sync.WaitGroup
 
 	// Process each interface defined in the configuration.
 	for _, ifaceConfig := range cfg.Interfaces {
@@ -44,7 +48,20 @@ func main() {
 			}
 		}
 		fmt.Printf("--- Finished processing interface: %s ---\n\n", ifaceConfig.Name)
+
+		// Start IPv6 monitoring if enabled for this interface
+		if ifaceConfig.MonitorIPv6 {
+			wg.Add(1)
+			go func(cfg config.InterfaceConfig) {
+				defer wg.Done()
+				ipv6monitor.MonitorInterface(cfg)
+			}(ifaceConfig)
+		}
 	}
 
-	fmt.Println("Multi-IPSIX configuration applied successfully.")
+	fmt.Println("Multi-IPSIX configuration applied successfully. Starting IPv6 monitoring (if enabled)...")
+
+	// Keep the main goroutine alive indefinitely to allow background goroutines to run.
+	wg.Wait() // Wait for all monitoring goroutines to finish (they won't, so this keeps main alive)
+	select {} // Block forever
 }

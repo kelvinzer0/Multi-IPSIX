@@ -48,11 +48,12 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=$BIN_PATH/$APP_NAME
 User=root
 Group=root
-RemainAfterExit=true
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

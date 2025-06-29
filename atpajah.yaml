@@ -5,6 +5,7 @@ interfaces:
       - "fd00::1/64"
       - "fd00::2/64"
       - "fd00::3/64"
+    monitor_ipv6: true
   - name: "wlan0"
     priority_ip: "fd01::1"
     addresses:

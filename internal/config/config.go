@@ -9,9 +9,10 @@ import (
 // InterfaceConfig defines the structure for a single interface in the YAML file.
 // It includes the interface name, the priority IP, and a list of all addresses to manage.
 type InterfaceConfig struct {
-	Name       string   `yaml:"name"`
-	PriorityIP string   `yaml:"priority_ip"`
-	Addresses  []string `yaml:"addresses"`
+	Name        string   `yaml:"name"`
+	PriorityIP  string   `yaml:"priority_ip"`
+	Addresses   []string `yaml:"addresses"`
+	MonitorIPv6 bool     `yaml:"monitor_ipv6"`
 }
 
 // Config is the top-level structure for the entire YAML configuration.
