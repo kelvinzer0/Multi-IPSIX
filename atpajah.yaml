@@ -1,0 +1,14 @@
+interfaces:
+  - name: "eth0"
+    priority_ip: "fd00::1"
+    addresses:
+      - "fd00::1/64"
+      - "fd00::2/64"
+      - "fd00::3/64"
+  - name: "wlan0"
+    priority_ip: "fd01::1"
+    addresses:
+      - "fd01::1/64"
+      - "fd01::2/64"
+      - "fd01::3/64"
+      - "fd01::4/64"
