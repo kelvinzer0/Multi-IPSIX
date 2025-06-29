@@ -28,29 +28,37 @@ func AddIPv6Address(iface, ipAddr string) error {
 	return nil
 }
 
-// DeprecateIPv6Address sets the preferred lifetime of a given IPv6 address to 0.
-// It correctly handles addresses with or without CIDR notation.
-func DeprecateIPv6Address(iface, ipAddr string) error {
-	var ip net.IP
-	// Handle addresses with or without CIDR notation.
-	if strings.Contains(ipAddr, "/") {
-		parsedIP, _, err := net.ParseCIDR(ipAddr)
-		if err != nil {
-			return fmt.Errorf("error parsing CIDR %s: %v", ipAddr, err)
-		}
-		ip = parsedIP
-	} else {
-		ip = net.ParseIP(ipAddr)
-		if ip == nil {
-			return fmt.Errorf("invalid IP address format: %s", ipAddr)
-		}
-	}
-
-	cmd := exec.Command("ip", "addr", "change", ip.String(), "dev", iface, "preferred_lft", "0")
+// DeprecateAllIPv6Addresses sets the preferred lifetime of all IPv6 addresses on a given interface to 0.
+func DeprecateAllIPv6Addresses(iface string) error {
+	// Get all IPv6 addresses on the interface
+	cmd := exec.Command("ip", "-6", "addr", "show", "dev", iface)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error deprecating IP %s on %s: %v, output: %s", ipAddr, iface, err, string(output))
+		return fmt.Errorf("error listing IPv6 addresses on %s: %v, output: %s", iface, err, string(output))
 	}
-	fmt.Printf("Deprecated IP %s on interface %s\n", ipAddr, iface)
+
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "inet6") {
+			fields := strings.Fields(strings.TrimSpace(line))
+			if len(fields) > 1 {
+				ipWithCIDR := fields[1]
+				ip, _, err := net.ParseCIDR(ipWithCIDR)
+				if err != nil {
+					fmt.Printf("Warning: Could not parse IP %s: %v\n", ipWithCIDR, err)
+					continue
+				}
+
+				// Deprecate each IPv6 address
+				deprecateCmd := exec.Command("ip", "addr", "change", ip.String(), "dev", iface, "preferred_lft", "0")
+				deprecateOutput, deprecateErr := deprecateCmd.CombinedOutput()
+				if deprecateErr != nil {
+					fmt.Printf("Warning: Error deprecating IP %s on %s: %v, output: %s\n", ip.String(), iface, deprecateErr, string(deprecateOutput))
+				} else {
+					fmt.Printf("Deprecated IP %s on interface %s\n", ip.String(), iface)
+				}
+			}
+		}
+	}
 	return nil
 }

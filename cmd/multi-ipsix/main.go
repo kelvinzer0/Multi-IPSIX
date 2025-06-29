@@ -34,37 +34,16 @@ func main() {
 			}
 		}
 
-		// 2. Deprecate non-priority addresses.
-		for _, ipAddr := range ifaceConfig.Addresses {
-			var ipString string
-			// Handle addresses with or without CIDR notation.
-			if strings.Contains(ipAddr, "/") {
-				ip, _, err := net.ParseCIDR(ipAddr)
-				if err != nil {
-					log.Printf("Warning: Could not parse CIDR %s: %v\n", ipAddr, err)
-					continue
-				}
-				ipString = ip.String()
-			} else {
-			// No CIDR, just validate it's a plain IP.
-				if net.ParseIP(ipAddr) == nil {
-					log.Printf("Warning: Invalid IP address format in config: %s\n", ipAddr)
-					continue
-				}
-				ipString = ipAddr
-			}
-
-			// If the current IP is the priority IP, skip it.
-			if ipString == ifaceConfig.PriorityIP {
-				fmt.Printf("Skipping deprecation for priority IP %s on interface %s\n", ipAddr, ifaceConfig.Name)
-				continue
-			}
-
-			// Deprecate the address.
-			if err := ipmanager.DeprecateIPv6Address(ifaceConfig.Name, ipAddr); err != nil {
-				log.Printf("Warning on deprecating IP: %v\n", err)
-			}
-		}
+		// 2. Deprecate all IPv6 addresses on the interface, except the priority IP.
+        if err := ipmanager.DeprecateAllIPv6Addresses(ifaceConfig.Name); err != nil {
+            log.Printf("Warning on deprecating all IPv6 addresses: %v\n", err)
+        }
+        // After deprecating all, ensure the priority IP is added back if it was deprecated.
+        if ifaceConfig.PriorityIP != "" {
+            if err := ipmanager.AddIPv6Address(ifaceConfig.Name, ifaceConfig.PriorityIP); err != nil {
+                log.Printf("Warning on re-adding priority IP %s: %v\n", ifaceConfig.PriorityIP, err)
+            }
+        }
 		fmt.Printf("--- Finished processing interface: %s ---\n\n", ifaceConfig.Name)
 	}
 
