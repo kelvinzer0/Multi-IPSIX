@@ -16,76 +16,55 @@ This ensures that only the priority IP is used for initiating new outbound conne
 - **Priority IP**: Assign a single, stable source IP for all outgoing traffic from an interface.
 - **Graceful Deprecation**: Non-priority IPs are deprecated by setting their `preferred_lft` to `0`. They are not removed and can still be used for incoming connections.
 - **Idempotent**: The tool can be run safely multiple times. It checks for existing IPs and avoids errors.
-- **Extensible**: Built with a clean, modular structure in Go, making it easy to extend and maintain.
-
-## How It Works
-
-The tool operates in a straightforward sequence:
-
-1.  **Load Configuration**: It reads the `atpajah.yaml` file to get the list of interfaces and their desired IP configurations.
-2.  **Ensure Addresses**: For each interface, it iterates through the list of IPv6 addresses and ensures they are all present using the `ip addr add` command. If an address already exists, it continues without error.
-3.  **Deprecate Non-Priority IPs**: It then re-iterates through the list. If an IP address does **not** match the designated `priority_ip` for that interface, it uses the `ip addr change` command to set its `preferred_lft` (preferred lifetime) to `0`. 
-
-This `preferred_lft 0` setting is the key. The Linux kernel will not select a deprecated address as the source for new outgoing connections unless an application explicitly binds to it.
+- **Systemd Integration**: Can be installed as a `systemd` service to run automatically on boot.
 
 ## Getting Started
 
 ### Prerequisites
 
-- **Go**: Version 1.18 or higher.
-- **Linux**: A Linux distribution with the `iproute2` toolset (which provides the `ip` command).
-- **Root Privileges**: The tool must be run as `root` or with `sudo` as it modifies network interface configurations.
+- **Go**: Version 1.18 or higher (for building from source).
+- **Linux**: A Linux distribution with `systemd` and the `iproute2` toolset.
+- **Root Privileges**: The installation script must be run with `sudo`.
 
-### Installation & Usage
+### Installation
 
-1.  **Clone the repository (or download the files):**
+1.  **Clone the repository:**
     ```bash
     git clone https://github.com/your-username/Multi-IPSIX.git
     cd Multi-IPSIX
     ```
 
-2.  **Configure your interfaces:**
-    Open `atpajah.yaml` and customize it to your needs. Add your interface names, the full list of IPv6 addresses (with CIDR masks), and specify which one should be the `priority_ip`.
+2.  **Customize the configuration:**
+    Before installing, open `atpajah.yaml` and configure your interfaces, addresses, and priority IPs according to your needs.
 
-    **Example `atpajah.yaml`:**
-    ```yaml
-    interfaces:
-      - name: "eth0"
-        priority_ip: "2001:db8:1::1"
-        addresses:
-          - "2001:db8:1::1/64"
-          - "2001:db8:1::2/64"
-          - "2001:db8:1::3/64"
-      - name: "wireguard-vpn"
-        priority_ip: "2001:db8:2::aaaa"
-        addresses:
-          - "2001:db8:2::aaaa/128"
-          - "2001:db8:2::bbbb/128"
-    ```
-
-3.  **Run the application:**
-    Execute the program from the root of the project directory with `sudo`.
-
+3.  **Run the installer:**
+    Execute the installation script with `sudo`. It will build the binary, move it to `/usr/local/bin`, copy the configuration, and set up the `systemd` service.
     ```bash
-    sudo go run cmd/multi-ipsix/main.go
+    sudo bash install.sh
     ```
 
-    The tool will print the actions it is taking for each interface.
-
-## Building a Binary
-
-For production use, you can compile the application into a single binary:
-
+The service is now enabled and will start automatically on boot. You can also start it manually:
 ```bash
-# This will create a binary named 'multi-ipsix' in the project root
-go build -o multi-ipsix cmd/multi-ipsix/main.go
+sudo systemctl start multi-ipsix
 ```
 
-Then you can run the binary directly:
+### Uninstallation
 
+To remove the application and all its components, run the uninstallation script:
 ```bash
-sudo ./multi-ipsix
+sudo bash uninstall.sh
 ```
+This will stop the service, remove the binary, and delete the `systemd` service file. It will ask for confirmation before deleting the configuration directory `/etc/multi-ipsix`.
+
+## How It Works
+
+The tool operates in a straightforward sequence:
+
+1.  **Load Configuration**: It reads `/etc/multi-ipsix/atpajah.yaml` to get the list of interfaces and their desired IP configurations.
+2.  **Ensure Addresses**: For each interface, it iterates through the list of IPv6 addresses and ensures they are all present using the `ip addr add` command. If an address already exists, it continues without error.
+3.  **Deprecate Non-Priority IPs**: It then re-iterates through the list. If an IP address does **not** match the designated `priority_ip` for that interface, it uses the `ip addr change` command to set its `preferred_lft` (preferred lifetime) to `0`. 
+
+This `preferred_lft 0` setting is the key. The Linux kernel will not select a deprecated address as the source for new outgoing connections unless an application explicitly binds to it.
 
 ## Future & Contribution
 

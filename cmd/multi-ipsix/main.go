@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Define the path to the configuration file.
-	configFile := "atpajah.yaml"
+	configFile := "/etc/multi-ipsix/atpajah.yaml"
 
 	// Load configuration from the YAML file.
 	cfg, err := config.LoadConfig(configFile)
