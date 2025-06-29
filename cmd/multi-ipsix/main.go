@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"Multi-IPSIX/internal/config"
 	"Multi-IPSIX/internal/ipmanager"
@@ -35,15 +36,26 @@ func main() {
 
 		// 2. Deprecate non-priority addresses.
 		for _, ipAddr := range ifaceConfig.Addresses {
-			// Parse the IP address to compare it without the CIDR suffix.
-			ip, _, err := net.ParseCIDR(ipAddr)
-			if err != nil {
-				log.Printf("Warning: Could not parse CIDR %s: %v\n", ipAddr, err)
-				continue
+			var ipString string
+			// Handle addresses with or without CIDR notation.
+			if strings.Contains(ipAddr, "/") {
+				ip, _, err := net.ParseCIDR(ipAddr)
+				if err != nil {
+					log.Printf("Warning: Could not parse CIDR %s: %v\n", ipAddr, err)
+					continue
+				}
+				ipString = ip.String()
+			} else {
+\t			// No CIDR, just validate it's a plain IP.
+				if net.ParseIP(ipAddr) == nil {
+					log.Printf("Warning: Invalid IP address format in config: %s\n", ipAddr)
+					continue
+				}
+				ipString = ipAddr
 			}
 
 			// If the current IP is the priority IP, skip it.
-			if ip.String() == ifaceConfig.PriorityIP {
+			if ipString == ifaceConfig.PriorityIP {
 				fmt.Printf("Skipping deprecation for priority IP %s on interface %s\n", ipAddr, ifaceConfig.Name)
 				continue
 			}
