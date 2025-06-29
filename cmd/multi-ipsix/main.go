@@ -36,6 +36,13 @@ func main() {
         if err := ipmanager.DeprecateAllIPv6Addresses(ifaceConfig.Name, ifaceConfig.PriorityIP); err != nil {
             log.Printf("Warning on deprecating all IPv6 addresses: %v\n", err)
         }
+
+		// 3. Ensure the priority IP is undeprecated.
+		if ifaceConfig.PriorityIP != "" {
+			if err := ipmanager.UndeprecateIPv6Address(ifaceConfig.Name, ifaceConfig.PriorityIP); err != nil {
+				log.Printf("Warning on undeprecating priority IP %s: %v\n", ifaceConfig.PriorityIP, err)
+			}
+		}
 		fmt.Printf("--- Finished processing interface: %s ---\n\n", ifaceConfig.Name)
 	}
 

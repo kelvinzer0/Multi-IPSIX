@@ -67,3 +67,21 @@ func DeprecateAllIPv6Addresses(iface, priorityIP string) error {
 	}
 	return nil
 }
+
+// UndeprecateIPv6Address sets the preferred lifetime of a given IPv6 address to forever.
+// It correctly handles addresses with or without CIDR notation.
+func UndeprecateIPv6Address(iface, ipAddr string) error {
+	// Ensure the address has a CIDR suffix, default to /64 for IPv6 if missing.
+	addrToUndeprecate := ipAddr
+	if !strings.Contains(addrToUndeprecate, "/") {
+		addrToUndeprecate = fmt.Sprintf("%s/64", ipAddr) // Append default IPv6 prefix
+	}
+
+	cmd := exec.Command("ip", "addr", "change", addrToUndeprecate, "dev", iface, "preferred_lft", "forever")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error undeprecating IP %s on %s: %v, output: %s", ipAddr, iface, err, string(output))
+	}
+	fmt.Printf("Undeprecated IP %s on interface %s\n", ipAddr, iface)
+	return nil
+}
