@@ -18,7 +18,7 @@ SERVICE_FILE="/etc/systemd/system/$APP_NAME.service"
 
 # --- Build the application ---
 echo "Building the application..."
-go build -o $APP_NAME ./cmd/$APP_NAME
+go build -o $APP_NAME -buildvcs=false ./cmd/$APP_NAME
 echo "Build successful."
 
 # --- Install files ---
