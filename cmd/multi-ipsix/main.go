@@ -46,7 +46,7 @@ func main() {
 				}
 				ipString = ip.String()
 			} else {
-\t			// No CIDR, just validate it's a plain IP.
+			// No CIDR, just validate it's a plain IP.
 				if net.ParseIP(ipAddr) == nil {
 					log.Printf("Warning: Invalid IP address format in config: %s\n", ipAddr)
 					continue
