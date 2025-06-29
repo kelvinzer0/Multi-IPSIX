@@ -30,7 +30,7 @@ This ensures that only the priority IP is used for initiating new outbound conne
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/Multi-IPSIX.git
+    git clone https://github.com/kelvinzer0/Multi-IPSIX.git
     cd Multi-IPSIX
     ```
 
