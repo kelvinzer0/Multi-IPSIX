@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
-	"strings"
 
 	"Multi-IPSIX/internal/config"
 	"Multi-IPSIX/internal/ipmanager"
